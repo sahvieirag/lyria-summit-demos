@@ -1,0 +1,12 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "server.js",
+  "dependencies": {
+    "@google/genai": "^1.15.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "google-auth-library": "^9.11.0"
+  }
+}

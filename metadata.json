@@ -1,0 +1,7 @@
+{
+  "name": "Lyria Music Studio",
+  "description": "An interactive web application that allows users to generate musical soundtracks using Google's Lyria model from text prompts, live photos, or predefined examples.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

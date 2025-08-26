@@ -1,0 +1,30 @@
+{
+  "name": "lyria-music-studio",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm:start:*\"",
+    "start:frontend": "vite",
+    "start:backend": "node backend/server.js",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@google/genai": "^1.15.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "google-auth-library": "^9.11.0",
+    "node-fetch": "^3.3.2",
+    "qrcode.react": "^4.2.0",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "react-router-dom": "^7.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "concurrently": "^9.2.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
+  }
+}
