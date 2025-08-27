@@ -1,7 +1,7 @@
 
 import React from 'react';
 import ActionCard from '../components/ActionCard';
-import { TextIcon, ImageIcon, GalleryIconLarge } from '../components/Icons';
+import { TextIcon, ImageIcon, GalleryIconLarge, IconMusic } from '../components/Icons';
 
 const HomePage: React.FC = () => {
   return (
@@ -35,6 +35,13 @@ const HomePage: React.FC = () => {
           description="Converta suas imagens estáticas em paisagens sonoras dinâmicas."
           tag="Inclui: Música com Imagem, Música com Imagem do Usuário"
           to="/image-to-music"
+        />
+        <ActionCard
+          icon={<IconMusic className="w-6 h-6 text-blue-700" />}
+          title="Prompt DJ"
+          description="Crie música em tempo real com prompts de texto."
+          tag="Inclui: Geração de Música em Tempo Real"
+          to="/prompt-dj"
         />
         <ActionCard 
           icon={<GalleryIconLarge />}

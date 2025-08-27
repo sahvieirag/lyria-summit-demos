@@ -19,6 +19,17 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
-      }
+      },
+      build: {
+        rollupOptions: {
+          input: {
+            main: path.resolve(__dirname, 'index.html'),
+            'prompt-dj-frame': path.resolve(__dirname, 'public/prompt-dj-frame.html'),
+          },
+        },
+      },
+      optimizeDeps: {
+        include: ['react', 'react-dom'],
+      },
     };
 });

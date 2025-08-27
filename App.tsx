@@ -6,6 +6,7 @@ import HomePage from './pages/HomePage';
 import TextToMusicPage from './pages/TextToMusicPage';
 import ImageToMusicPage from './pages/ImageToMusicPage';
 import GalleryPage from './pages/GalleryPage';
+import PromptDJPage from './pages/PromptDJPage';
 
 const App: React.FC = () => {
   return (
@@ -16,6 +17,7 @@ const App: React.FC = () => {
           <Route path="/text-to-music" element={<TextToMusicPage />} />
           <Route path="/image-to-music" element={<ImageToMusicPage />} />
           <Route path="/gallery" element={<GalleryPage />} />
+          <Route path="/prompt-dj" element={<PromptDJPage />} />
         </Routes>
       </Layout>
     </HashRouter>
