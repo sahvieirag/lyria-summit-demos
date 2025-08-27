@@ -1589,12 +1589,16 @@ export class PromptDj extends LitElement {
   }
 
   override async firstUpdated() {
-    await this.connectToSession();
-    this.setSessionPrompts();
     this.showOnboarding = true;
+    this.connectToSession().then(() => {
+      this.setSessionPrompts();
+    });
   }
 
   private async connectToSession() {
+    if (this.session) {
+      return;
+    }
     this.session = await ai.live.music.connect({
       model: model,
       callbacks: {
