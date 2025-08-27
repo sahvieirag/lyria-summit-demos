@@ -115,6 +115,36 @@ app.post('/api/generate-audio-from-prompt', async (req, res) => {
     }
 });
 
+app.post('/api/save-api-key', (req, res) => {
+    const { apiKey } = req.body;
+    if (!apiKey) {
+        return res.status(400).json({ error: 'API key is required' });
+    }
+
+    const envPath = path.join(__dirname, '..', '.env');
+    fs.readFile(envPath, 'utf8', (err, data) => {
+        if (err) {
+            console.error('Error reading .env file:', err);
+            return res.status(500).json({ error: 'Failed to read .env file' });
+        }
+
+        let newData = data;
+        if (data.includes('VITE_GEMINI_API_KEY')) {
+            newData = data.replace(/VITE_GEMINI_API_KEY=.*/g, `VITE_GEMINI_API_KEY=${apiKey}`);
+        } else {
+            newData += `\nVITE_GEMINI_API_KEY=${apiKey}`;
+        }
+
+        fs.writeFile(envPath, newData, 'utf8', (err) => {
+            if (err) {
+                console.error('Error writing to .env file:', err);
+                return res.status(500).json({ error: 'Failed to save API key' });
+            }
+            res.json({ message: 'API key saved successfully' });
+        });
+    });
+});
+
 app.post('/api/generate-music-from-text', async (req, res) => {
     const { prompt } = req.body;
     if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
