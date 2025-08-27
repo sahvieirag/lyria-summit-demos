@@ -41,7 +41,7 @@ This project uses Google Cloud Build to automate the deployment to Cloud Run.
     ```bash
     gcloud config set project YOUR_PROJECT_ID
     ```
-3.  **Run the Cloud Build pipeline** with your project ID and desired service name. The `PROJECT_ID` will be automatically passed to the Cloud Run service as an environment variable.
+3.  **Run the Cloud Build pipeline** with your project ID, API_KEY and desired service name. The `PROJECT_ID` will be automatically passed to the Cloud Run service as an environment variable.
     ```bash
-    gcloud builds submit --config cloudbuild.yaml --substitutions=_SERVICE_NAME=your-service-name,_PROJECT_ID=your-project-id .
+    gcloud builds submit --config cloudbuild.yaml --substitutions=_SERVICE_NAME=your-service-name,_PROJECT_ID=your-project-id,_VITE_GEMINI_API_KEY=your-api-key
     ```

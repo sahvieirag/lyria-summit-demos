@@ -1,34 +1,51 @@
 steps:
   # Build the container image
   - name: 'gcr.io/cloud-builders/docker'
-    args:
-      [
+    id: 'Build'
+    args: [
         'build',
-        '-t',
-        'us-central1-docker.pkg.dev/${_PROJECT_ID}/${_SERVICE_NAME}/${_SERVICE_NAME}:latest',
-        '.',
-      ]
-  # Push the container image to Artifact Registry
+        '-t', '$_REPO_LOCATION-docker.pkg.dev/$_PROJECT_ID/$_REPO_ID/$_SERVICE_NAME',
+        '.' 
+    ]
   - name: 'gcr.io/cloud-builders/docker'
-    args:
-      [
+    id: 'Tag: LATEST'
+    args: [
+        'tag',
+        '$_REPO_LOCATION-docker.pkg.dev/$_PROJECT_ID/$_REPO_ID/$_SERVICE_NAME',
+        '$_REPO_LOCATION-docker.pkg.dev/$_PROJECT_ID/$_REPO_ID/$_SERVICE_NAME:$_TAG'
+    ]
+  # Push the container image to Artifact Registry  
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'Push: LATEST'
+    args: [
         'push',
-        'us-central1-docker.pkg.dev/${_PROJECT_ID}/${_SERVICE_NAME}/${_SERVICE_NAME}:latest',
-      ]
+        '$_REPO_LOCATION-docker.pkg.dev/$_PROJECT_ID/$_REPO_ID/$_SERVICE_NAME:$_TAG'
+    ]
+
   # Deploy container image to Cloud Run
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: gcloud
-    args:
-      [
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'Deploy'
+    args: [
         'run',
-        'deploy',
-        '${_SERVICE_NAME}',
-        '--image',
-        'us-central1-docker.pkg.dev/${_PROJECT_ID}/${_SERVICE_NAME}/${_SERVICE_NAME}:latest',
-        '--region',
-        'us-central1',
-        '--allow-unauthenticated',
-        '--set-env-vars=PROJECT_ID=${_PROJECT_ID}',
-      ]
-images:
-  - 'us-central1-docker.pkg.dev/${_PROJECT_ID}/${_SERVICE_NAME}/${_SERVICE_NAME}:latest'
+        'deploy', '$_SERVICE_NAME',
+        '--image', '$_REPO_LOCATION-docker.pkg.dev/$_PROJECT_ID/$_REPO_ID/$_SERVICE_NAME:$_TAG',
+        '--platform', 'managed',
+        '--region', '$_SERVICE_REGION',
+        '--set-env-vars=PROJECT_ID=$_PROJECT_ID,VITE_GEMINI_API_KEY=$_VITE_GEMINI_API_KEY',
+        '--min-instances=1', '--max-instances=2',
+        '--memory=8Gi','--cpu=4',
+        '--no-cpu-throttling', '--cpu-boost',
+        '--timeout=1200',
+        '--allow-unauthenticated'
+    ]
+
+substitutions:
+  _SERVICE_NAME: lyria-demo
+  _SERVICE_REGION: southamerica-east1
+  _TAG: 1.0.0
+  _REPO_LOCATION: southamerica-east1
+  _PROJECT_ID: gcp-project-id
+  _VITE_GEMINI_API_KEY: your-api-key
+  _REPO_ID: lyria-demo-repo
+
+tags: ['lyria-demo','docker', 'vertex']
