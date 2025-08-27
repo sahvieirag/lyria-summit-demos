@@ -18,10 +18,7 @@ import {
 } from '@google/genai';
 import {decode, decodeAudioData} from '../services/promptDJUtils';
 
-const ai = new GoogleGenAI({
-  apiKey: import.meta.env.VITE_GEMINI_API_KEY,
-  apiVersion: 'v1alpha',
-});
+let ai: GoogleGenAI;
 let model = 'lyria-realtime-exp';
 
 interface Prompt {
@@ -1589,10 +1586,29 @@ export class PromptDj extends LitElement {
   }
 
   override async firstUpdated() {
-    this.showOnboarding = true;
-    this.connectToSession().then(() => {
-      this.setSessionPrompts();
-    });
+    try {
+      const response = await fetch('/api/get-api-key');
+      if (!response.ok) {
+        throw new Error('Failed to fetch API key');
+      }
+      const { apiKey } = await response.json();
+      if (!apiKey) {
+        throw new Error('API key is missing');
+      }
+      
+      ai = new GoogleGenAI({
+        apiKey,
+        apiVersion: 'v1alpha',
+      });
+
+      this.showOnboarding = true;
+      this.connectToSession().then(() => {
+        this.setSessionPrompts();
+      });
+    } catch (error) {
+      console.error('Failed to initialize PromptDJ:', error);
+      this.toastMessage.show('Error: Could not initialize music generation.');
+    }
   }
 
   private async connectToSession() {

@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => {
         rollupOptions: {
           input: {
             main: path.resolve(__dirname, 'index.html'),
-            'prompt-dj-frame': path.resolve(__dirname, 'public/prompt-dj-frame.html'),
+            'prompt-dj-frame': path.resolve(__dirname, 'prompt-dj-frame.html'),
           },
         },
       },

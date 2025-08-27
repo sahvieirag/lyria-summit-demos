@@ -184,6 +184,16 @@ Please return a valid JSON object with the following structure:\n{\n  "title": "
 });
 
 
+app.get('/api/get-api-key', (req, res) => {
+  const apiKey = process.env.VITE_GEMINI_API_KEY;
+  if (apiKey) {
+    res.json({ apiKey });
+  } else {
+    res.status(500).json({ error: 'API key not found on the server.' });
+  }
+});
+
+
 // --- Fallback for Single Page Application (SPA) ---
 // This should be after all API routes.. It serves the index.html for any
 // request that doesn't match a static file or API route, allowing
