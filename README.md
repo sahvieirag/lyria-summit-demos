@@ -21,7 +21,7 @@ A web application that uses AI to generate music from text prompts and images.
     ```bash
     gcloud auth application-default login
     ```
-2.  **Create a `.env.local` file** in the root of the project and add your Google Cloud Project ID:
+2.  **Create a `.env` file** in the root of the project and add your Google Cloud Project ID:
     ```
     PROJECT_ID=your-google-cloud-project-id
     ```
