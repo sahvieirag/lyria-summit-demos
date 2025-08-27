@@ -14,9 +14,10 @@ import {
   type LiveMusicGenerationConfig,
   type LiveMusicServerMessage,
   type LiveMusicSession,
-  Type,
+  type MusicGenerationMode,
 } from '@google/genai';
 import {decode, decodeAudioData} from '../services/promptDJUtils';
+
 const ai = new GoogleGenAI({
   apiKey: import.meta.env.VITE_GEMINI_API_KEY,
   apiVersion: 'v1alpha',
@@ -132,8 +133,12 @@ class WeightSlider extends LitElement {
     }
   `;
 
-  @property({type: Number}) value = 0; // Range 0-2
-  @property({type: String}) color = '#000';
+  static override properties = {
+    value: {type: Number},
+    color: {type: String},
+  };
+  value = 0;
+  color = '#000';
 
   @query('.scroll-container') private scrollContainer!: HTMLDivElement;
 
@@ -375,7 +380,10 @@ class IconButton extends LitElement {
 /** A button for toggling play/pause. */
 @customElement('play-pause-button')
 export class PlayPauseButton extends IconButton {
-  @property({type: String}) playbackState: PlaybackState = 'stopped';
+  static override properties = {
+    playbackState: {type: String},
+  };
+  playbackState: PlaybackState = 'stopped';
 
   static override styles = [
     IconButton.styles,
@@ -509,8 +517,13 @@ class ToastMessage extends LitElement {
     }
   `;
 
-  @property({type: String}) message = '';
-  @property({type: Boolean}) showing = false;
+  static override properties = {
+    message: {type: String},
+    showing: {type: Boolean},
+  };
+
+  message = '';
+  showing = false;
 
   override render() {
     return html`<div class=${classMap({showing: this.showing, toast: true})}>
@@ -607,6 +620,8 @@ class PromptController extends LitElement {
       color: #fff;
       scrollbar-width: thin;
       scrollbar-color: #666 #1a1a1a;
+      background-color: transparent;
+      resize: none;
     }
     #text::-webkit-scrollbar {
       width: 6px;
@@ -624,13 +639,20 @@ class PromptController extends LitElement {
     }
   `;
 
-  @property({type: String, reflect: true}) promptId = '';
-  @property({type: String}) text = '';
-  @property({type: Number}) weight = 0;
-  @property({type: String}) color = '';
+  static override properties = {
+    promptId: {type: String, reflect: true},
+    text: {type: String},
+    weight: {type: Number},
+    color: {type: String},
+  };
+
+  promptId = '';
+  text = '';
+  weight = 0;
+  color = '';
 
   @query('weight-slider') private weightInput!: WeightSlider;
-  @query('#text') private textInput!: HTMLSpanElement;
+  @query('#text') private textInput!: HTMLTextAreaElement;
 
   private handleTextKeyDown(e: KeyboardEvent) {
     if (e.key === 'Enter') {
@@ -655,9 +677,9 @@ class PromptController extends LitElement {
 
   private updateText() {
     console.log('updateText');
-    const newText = this.textInput.textContent?.trim();
+    const newText = this.textInput.value?.trim();
     if (newText === '') {
-      this.textInput.textContent = this.text;
+      this.textInput.value = this.text;
       return;
     }
     this.text = newText;
@@ -693,14 +715,13 @@ class PromptController extends LitElement {
         color=${this.color}
         @input=${this.updateWeight}></weight-slider>
       <div class="controls">
-        <span
+        <textarea
           id="text"
           spellcheck="false"
-          contenteditable="plaintext-only"
+          .value=${this.text}
           @keydown=${this.handleTextKeyDown}
           @blur=${this.updateText}
-          >${this.text}</span
-        >
+        ></textarea>
       </div>
     </div>`;
   }
@@ -723,9 +744,6 @@ class SettingsController extends LitElement {
       scrollbar-width: thin;
       scrollbar-color: #666 #1a1a1a;
       transition: width 0.3s ease-out max-height 0.3s ease-out;
-    }
-    :host([showadvanced]) {
-      max-height: 40vmin;
     }
     :host::-webkit-scrollbar {
       width: 6px;
@@ -763,7 +781,7 @@ class SettingsController extends LitElement {
       --track-bg: #0009;
       --track-border-radius: 4px;
       --thumb-size: 16px;
-      --thumb-bg: #5200ff;
+      --thumb-bg: #3aa60cff;
       --thumb-border-radius: 50%;
       --thumb-box-shadow: 0 0 3px rgba(0, 0, 0, 0.7);
       --value-percent: 0%;
@@ -842,15 +860,15 @@ class SettingsController extends LitElement {
     input[type='number']:focus,
     input[type='text']:focus {
       outline: none;
-      border-color: #5200ff;
-      box-shadow: 0 0 0 2px rgba(82, 0, 255, 0.3);
+      border-color: #3aa60cff;
+      box-shadow: 0 0 0 2px rgba(16, 139, 9, 0.3);
     }
     select {
       width: 100%;
     }
     select:focus {
       outline: none;
-      border-color: #5200ff;
+      border-color: #3aa60cff;
     }
     select option {
       background-color: #2a2a2a;
@@ -863,7 +881,7 @@ class SettingsController extends LitElement {
     }
     input[type='checkbox'] {
       cursor: pointer;
-      accent-color: #5200ff;
+      accent-color: #3aa60cff;
     }
     .core-settings-row {
       display: flex;
@@ -904,8 +922,13 @@ class SettingsController extends LitElement {
     }
     .advanced-settings.visible {
       max-width: 120vmin;
-      max-height: 40vmin;
+      max-height: 80vmin;
       opacity: 1;
+    }
+    @media (max-width: 768px) {
+      .advanced-settings {
+        grid-template-columns: 1fr;
+      }
     }
     hr.divider {
       display: none;
@@ -913,9 +936,6 @@ class SettingsController extends LitElement {
       border-top: 1px solid #666;
       margin: 2vmin 0;
       width: 100%;
-    }
-    :host([showadvanced]) hr.divider {
-      display: block;
     }
     .auto-row {
       display: flex;
@@ -938,26 +958,32 @@ class SettingsController extends LitElement {
     }
   `;
 
-  private readonly defaultConfig = {
+  static override properties = {
+    config: {state: true},
+    autoDensity: {state: true},
+    lastDefinedDensity: {state: true},
+    autoBrightness: {state: true},
+    lastDefinedBrightness: {state: true},
+  };
+
+  private config: LiveMusicGenerationConfig = {
     temperature: 1.1,
     topK: 40,
     guidance: 4.0,
+    musicGenerationMode: 'QUALITY' as MusicGenerationMode,
   };
-
-  @state() private config: LiveMusicGenerationConfig = this.defaultConfig;
-
-  @state() showAdvanced = false;
-
-  @state() autoDensity = true;
-
-  @state() lastDefinedDensity: number;
-
-  @state() autoBrightness = true;
-
-  @state() lastDefinedBrightness: number;
+  autoDensity = true;
+  lastDefinedDensity: number;
+  autoBrightness = true;
+  lastDefinedBrightness: number;
 
   public resetToDefaults() {
-    this.config = this.defaultConfig;
+    this.config = {
+      temperature: 1.1,
+      topK: 40,
+      guidance: 4.0,
+      musicGenerationMode: 'QUALITY' as MusicGenerationMode,
+    };
     this.autoDensity = true;
     this.lastDefinedDensity = undefined;
     this.autoBrightness = true;
@@ -977,7 +1003,7 @@ class SettingsController extends LitElement {
   }
 
   private handleInputChange(e: Event) {
-    const target = e.target as HTMLInputElement;
+    const target = e.target as HTMLInputElement | HTMLSelectElement;
     const key = target.id as
       | keyof LiveMusicGenerationConfig
       | 'auto-density'
@@ -988,16 +1014,16 @@ class SettingsController extends LitElement {
       value = target.value === '' ? undefined : Number(target.value);
       // Update slider background if it's a range input before handling the value change.
       if (target.type === 'range') {
-        this.updateSliderBackground(target);
+        this.updateSliderBackground(target as HTMLInputElement);
       }
     } else if (target.type === 'checkbox') {
-      value = target.checked;
+      value = (target as HTMLInputElement).checked;
     } else if (target.type === 'select-one') {
-      const selectElement = target as unknown as HTMLSelectElement;
+      const selectElement = target as HTMLSelectElement;
       if (selectElement.options[selectElement.selectedIndex]?.disabled) {
         value = undefined;
       } else {
-        value = selectElement.value;
+        value = target.value;
       }
     }
 
@@ -1060,16 +1086,13 @@ class SettingsController extends LitElement {
     );
   }
 
-  private toggleAdvancedSettings() {
-    this.showAdvanced = !this.showAdvanced;
-  }
-
   override render() {
     const cfg = this.config;
-    const advancedClasses = classMap({
-      'advanced-settings': true,
-      'visible': this.showAdvanced,
-    });
+    const musicGenerationModeMap = new Map<string, string>([
+      ['Quality', 'QUALITY'],
+      ['Diversity', 'DIVERSITY'],
+      ['Vocalization', 'VOCALIZATION'],
+    ]);
     const scaleMap = new Map<string, string>([
       ['Auto', 'SCALE_UNSPECIFIED'],
       ['C Major / A Minor', 'C_MAJOR_A_MINOR'],
@@ -1126,126 +1149,54 @@ class SettingsController extends LitElement {
             @input=${this.handleInputChange} />
         </div>
       </div>
-      <hr class="divider" />
-      <div class=${advancedClasses}>
-        <div class="setting">
-          <label for="seed">Seed</label>
-          <input
-            type="number"
-            id="seed"
-            .value=${cfg.seed ?? ''}
-            @input=${this.handleInputChange}
-            placeholder="Auto" />
-        </div>
-        <div class="setting">
-          <label for="bpm">BPM</label>
-          <input
-            type="number"
-            id="bpm"
-            min="60"
-            max="180"
-            .value=${cfg.bpm ?? ''}
-            @input=${this.handleInputChange}
-            placeholder="Auto" />
-        </div>
-        <div class="setting" auto=${this.autoDensity}>
-          <label for="density">Density</label>
-          <input
-            type="range"
-            id="density"
-            min="0"
-            max="1"
-            step="0.05"
-            .value=${this.lastDefinedDensity}
-            @input=${this.handleInputChange} />
-          <div class="auto-row">
-            <input
-              type="checkbox"
-              id="auto-density"
-              .checked=${this.autoDensity}
-              @input=${this.handleInputChange} />
-            <label for="auto-density">Auto</label>
-            <span>${(this.lastDefinedDensity ?? 0.5).toFixed(2)}</span>
-          </div>
-        </div>
-        <div class="setting" auto=${this.autoBrightness}>
-          <label for="brightness">Brightness</label>
-          <input
-            type="range"
-            id="brightness"
-            min="0"
-            max="1"
-            step="0.05"
-            .value=${this.lastDefinedBrightness}
-            @input=${this.handleInputChange} />
-          <div class="auto-row">
-            <input
-              type="checkbox"
-              id="auto-brightness"
-              .checked=${this.autoBrightness}
-              @input=${this.handleInputChange} />
-            <label for="auto-brightness">Auto</label>
-            <span>${(this.lastDefinedBrightness ?? 0.5).toFixed(2)}</span>
-          </div>
-        </div>
-        <div class="setting">
-          <label for="scale">Scale</label>
-          <select
-            id="scale"
-            .value=${cfg.scale || 'SCALE_UNSPECIFIED'}
-            @change=${this.handleInputChange}>
-            <option value="" disabled selected>Select Scale</option>
-            ${[...scaleMap.entries()].map(
-              ([displayName, enumValue]) =>
-                html`<option value=${enumValue}>${displayName}</option>`,
-            )}
-          </select>
-        </div>
-        <div class="setting">
-          <div class="setting checkbox-setting">
-            <input
-              type="checkbox"
-              id="muteBass"
-              .checked=${!!cfg.muteBass}
-              @change=${this.handleInputChange} />
-            <label for="muteBass" style="font-weight: normal;">Mute Bass</label>
-          </div>
-          <div class="setting checkbox-setting">
-            <input
-              type="checkbox"
-              id="muteDrums"
-              .checked=${!!cfg.muteDrums}
-              @change=${this.handleInputChange} />
-            <label for="muteDrums" style="font-weight: normal;"
-              >Mute Drums</label
-            >
-          </div>
-          <div class="setting checkbox-setting">
-            <input
-              type="checkbox"
-              id="onlyBassAndDrums"
-              .checked=${!!cfg.onlyBassAndDrums}
-              @change=${this.handleInputChange} />
-            <label for="onlyBassAndDrums" style="font-weight: normal;"
-              >Only Bass & Drums</label
-            >
-          </div>
-        </div>
-      </div>
-      <div class="advanced-toggle" @click=${this.toggleAdvancedSettings}>
-        ${this.showAdvanced ? 'Hide' : 'Show'} Advanced Settings
+    `;
+  }
+}
+
+@customElement('loading-spinner')
+class LoadingSpinner extends LitElement {
+  static override styles = css`
+    .spinner-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1001;
+    }
+    .spinner {
+      width: 8vmin;
+      height: 8vmin;
+      border: 1vmin solid #fff;
+      border-top-color: #3aa60cff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  `;
+
+  override render() {
+    return html`
+      <div class="spinner-overlay">
+        <div class="spinner"></div>
       </div>
     `;
   }
 }
 
-// Onboarding Modal component
-// -----------------------------------------------------------------------------
 @customElement('onboarding-modal')
 class OnboardingModal extends LitElement {
   static override styles = css`
     .overlay {
-      position: fixed;
+      position: absolute;
       top: 0;
       left: 0;
       width: 100%;
@@ -1318,8 +1269,8 @@ class OnboardingModal extends LitElement {
     }
     textarea:focus {
       outline: none;
-      border-color: #5200ff;
-      box-shadow: 0 0 0 2px rgba(82, 0, 255, 0.3);
+      border-color: #3aa60cff;
+      box-shadow: 0 0 0 2px rgba(27, 100, 13, 0.3);
     }
     .actions {
       display: flex;
@@ -1329,7 +1280,7 @@ class OnboardingModal extends LitElement {
       margin-top: 1vmin;
     }
     button[type='submit'] {
-      background-color: #5200ff;
+      background-color: #3aa60cff;
       color: white;
       border: none;
       padding: 1.5vmin 3vmin;
@@ -1343,7 +1294,7 @@ class OnboardingModal extends LitElement {
       width: 60%;
     }
     button[type='submit']:hover:not(:disabled) {
-      background-color: #6a1fff;
+      background-color: #2e720eff;
       transform: translateY(-2px);
     }
     button[type='submit']:disabled {
@@ -1364,10 +1315,27 @@ class OnboardingModal extends LitElement {
     }
   `;
 
-  @property({type: Boolean, reflect: true}) show = false;
-  @property({type: Boolean}) isLoading = false;
-  @property({type: Boolean}) isUpdate = false;
-  @state() private purpose = '';
+  static override get properties() {
+    return {
+      show: {type: Boolean, reflect: true},
+      isLoading: {type: Boolean},
+      isUpdate: {type: Boolean},
+      purpose: {state: true},
+    };
+  }
+
+  show = false;
+  isLoading = false;
+  isUpdate = false;
+  private purpose = '';
+
+  constructor() {
+    super();
+    this.show = false;
+    this.isLoading = false;
+    this.isUpdate = false;
+    this.purpose = '';
+  }
 
   private _handleInput(e: Event) {
     this.purpose = (e.target as HTMLTextAreaElement).value;
@@ -1415,7 +1383,7 @@ class OnboardingModal extends LitElement {
                 class="skip-link"
                 @click=${this._handleSkip}
                 ?hidden=${this.isLoading}>
-                ${this.isUpdate ? 'Cancelar' : 'Pular e usar presets'}
+                ${'Cancelar'}
               </button>
             </div>
           </form>
@@ -1427,7 +1395,7 @@ class OnboardingModal extends LitElement {
 
 /** Component for the PromptDJ UI. */
 @customElement('prompt-dj')
-class PromptDj extends LitElement {
+export class PromptDj extends LitElement {
   static override styles = css`
     :host {
       height: 100%;
@@ -1509,8 +1477,7 @@ class PromptDj extends LitElement {
     }
     play-pause-button,
     add-prompt-button,
-    reset-button,
-    change-purpose-button {
+    reset-button {
       width: 12vmin;
       flex-shrink: 0;
     }
@@ -1523,57 +1490,108 @@ class PromptDj extends LitElement {
     }
   `;
 
-  @property({
-    type: Object,
-    attribute: false,
-  })
-  private prompts: Map<string, Prompt>;
+  static override properties = {
+    prompts: {state: true},
+    playbackState: {state: true},
+    filteredPrompts: {state: true},
+    onboardingIsLoading: {state: true},
+    showOnboarding: {state: true},
+    isChangingPurpose: {state: true},
+    isGenerating: {state: true},
+  };
+
+  prompts: Map<string, Prompt>;
+  isGenerating = false;
   private nextPromptId: number; // Monotonically increasing ID for new prompts
   private session: LiveMusicSession;
   private readonly sampleRate = 48000;
-  private audioContext = new (window.AudioContext || window.webkitAudioContext)(
+  private audioContext = new (window.AudioContext || (window as any).webkitAudioContext)(
     {sampleRate: this.sampleRate},
   );
   private outputNode: GainNode = this.audioContext.createGain();
   private nextStartTime = 0;
   private readonly bufferTime = 2; // adds an audio buffer in case of netowrk latency
-  @state() private playbackState: PlaybackState = 'stopped';
-  @state() private showOnboarding = false;
-  @state() private onboardingIsLoading = false;
-  @state() private isChangingPurpose = false;
-  @property({type: Object})
-  private filteredPrompts = new Set<string>();
+  playbackState: PlaybackState;
+  filteredPrompts: Set<string>;
   private connectionError = true;
 
   @query('play-pause-button') private playPauseButton!: PlayPauseButton;
   @query('toast-message') private toastMessage!: ToastMessage;
   @query('settings-controller') private settingsController!: SettingsController;
   @query('onboarding-modal') private onboardingModal!: OnboardingModal;
+  private onboardingIsLoading = false;
+  private showOnboarding = false;
+  private isChangingPurpose = false;
 
-  constructor() {
+  constructor(prompts: Map<string, Prompt>) {
     super();
-    this.prompts = new Map();
-    this.nextPromptId = 0;
+    this.prompts = prompts;
+    this.playbackState = 'stopped';
+    this.filteredPrompts = new Set<string>();
+    this.nextPromptId = this.prompts.size;
     this.outputNode.connect(this.audioContext.destination);
+    this.onboardingIsLoading = false;
+    this.showOnboarding = false;
+    this.isChangingPurpose = false;
   }
 
-  override async firstUpdated() {
-    await this.initializeApplication();
-  }
+  private async handleGenerateFromPurpose(e: CustomEvent<string>) {
+    const purpose = e.detail;
+    this.onboardingIsLoading = true;
+    this.isGenerating = true;
+    this.showOnboarding = false;
+    try {
+      const prompt = `You are a creative music director. A user wants to create music for a specific purpose. Your task is to suggest 4 diverse and evocative musical prompts (styles, instruments, feelings, genres) that can be blended to achieve this purpose, along with their initial weights. The user's purpose is: '${purpose}'. Each prompt should be 1 to 3 words long and in English. The weights should be a number between 0.0 and 2.0, representing the initial influence of the prompt. Please provide only a JSON array of 4 objects in your response, where each object has a "prompt" (string) and a "weight" (number).`;
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [{parts: [{text: prompt}]}],
+      });
 
-  private async initializeApplication() {
-    if (!localStorage.getItem('promptdj-onboarding-seen')) {
-      this.showOnboarding = true;
-    } else {
-      await this.startWithStoredPrompts();
+      const textResponse = response.text
+        .replace('```json', '')
+        .replace('```', '')
+        .trim();
+      const newPromptData = JSON.parse(textResponse) as {
+        prompt: string;
+        weight: number;
+      }[];
+
+      const newPrompts: Prompt[] = [];
+      const usedColors: string[] = [];
+      for (let i = 0; i < newPromptData.length; i++) {
+        const {prompt: text, weight} = newPromptData[i];
+        const color = getUnusedRandomColor(usedColors);
+        usedColors.push(color);
+        newPrompts.push({
+          promptId: `prompt-${i}`,
+          text,
+          weight: weight,
+          color,
+        });
+      }
+
+      this.prompts = new Map(newPrompts.map((p) => [p.promptId, p]));
+      this.nextPromptId = this.prompts.size;
+      setStoredPrompts(this.prompts);
+
+      await this.connectToSession();
+      this.setSessionPrompts();
+    } catch (err) {
+      console.error('Failed to generate prompts from purpose:', err);
+      this.toastMessage.show(
+        'Falha ao gerar prompts. Tente novamente ou use os padrões.',
+      );
+    } finally {
+      this.onboardingIsLoading = false;
+      this.isGenerating = false;
+      this.isChangingPurpose = false; // Reset state
     }
   }
 
-  private async startWithStoredPrompts() {
-    this.prompts = getStoredPrompts();
-    this.nextPromptId = this.prompts.size;
+  override async firstUpdated() {
     await this.connectToSession();
     this.setSessionPrompts();
+    this.showOnboarding = true;
   }
 
   private async connectToSession() {
@@ -1703,9 +1721,7 @@ class PromptDj extends LitElement {
       const stop = p.weight / 2;
       const x = (i % 4) / 3;
       const y = Math.floor(i / 4) / 3;
-      const s = `radial-gradient(circle at ${x * 100}% ${
-        y * 100
-      }%, ${p.color}${alpha} 0px, ${p.color}00 ${stop * 100}%)`;
+      const s = `radial-gradient(circle at ${x * 100}% ${y * 100}%, ${p.color}${alpha} 0px, ${p.color}00 ${stop * 100}%)`;
 
       bg.push(s);
     });
@@ -1732,7 +1748,9 @@ class PromptDj extends LitElement {
   }
 
   private pauseAudio() {
-    this.session.pause();
+    if (this.session) {
+      this.session.pause();
+    }
     this.playbackState = 'paused';
     this.outputNode.gain.setValueAtTime(1, this.audioContext.currentTime);
     this.outputNode.gain.linearRampToValueAtTime(
@@ -1756,7 +1774,9 @@ class PromptDj extends LitElement {
   }
 
   private stopAudio() {
-    this.session.stop();
+    if (this.session) {
+      this.session.stop();
+    }
     this.playbackState = 'stopped';
     this.outputNode.gain.setValueAtTime(0, this.audioContext.currentTime);
     this.outputNode.gain.linearRampToValueAtTime(
@@ -1860,117 +1880,65 @@ class PromptDj extends LitElement {
     setTimeout(this.loadAudio.bind(this), 100);
   }
 
-  private async handleOnboardingClose() {
-    this.showOnboarding = false;
-    this.isChangingPurpose = false; // Reset state
-    // If it's the very first run and user skips, initialize with presets.
-    if (!localStorage.getItem('promptdj-onboarding-seen')) {
-      localStorage.setItem('promptdj-onboarding-seen', 'true');
-      await this.startWithStoredPrompts();
+  public close() {
+    if (this.session) {
+      this.pauseAudio();
+      this.session.close();
     }
-  }
-
-  private async handleGenerateFromPurpose(e: CustomEvent<string>) {
-    const purpose = e.detail;
-    this.onboardingIsLoading = true;
-    try {
-      const prompt = `You are a creative music director. A user wants to create music for a specific purpose. Your task is to suggest 4 diverse and evocative musical prompts (styles, instruments, feelings, genres) that can be blended to achieve this purpose. The user's purpose is: '${purpose}'. Please provide only a JSON array of 4 strings in your response, where each string is a prompt.`;
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: {
-          responseMimeType: 'application/json',
-          responseSchema: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.STRING,
-              description: 'A musical style, instrument, or evocative phrase.',
-            },
-          },
-        },
-      });
-
-      const newPromptTexts = JSON.parse(response.text) as string[];
-
-      const newPrompts: Prompt[] = [];
-      const usedColors: string[] = [];
-      for (let i = 0; i < newPromptTexts.length; i++) {
-        const text = newPromptTexts[i];
-        const color = getUnusedRandomColor(usedColors);
-        usedColors.push(color);
-        newPrompts.push({
-          promptId: `prompt-${i}`,
-          text,
-          weight: 0,
-          color,
-        });
-      }
-      // Activate the first two prompts
-      if (newPrompts[0]) newPrompts[0].weight = 1;
-      if (newPrompts[1]) newPrompts[1].weight = 1;
-
-      this.prompts = new Map(newPrompts.map((p) => [p.promptId, p]));
-      this.nextPromptId = this.prompts.size;
-      setStoredPrompts(this.prompts);
-      localStorage.setItem('promptdj-onboarding-seen', 'true');
-      this.showOnboarding = false;
-
-      await this.connectToSession();
-      this.setSessionPrompts();
-    } catch (err) {
-      console.error('Failed to generate prompts from purpose:', err);
-      this.toastMessage.show(
-        'Falha ao gerar prompts. Tente novamente ou use os padrões.',
-      );
-    } finally {
-      this.onboardingIsLoading = false;
-      this.isChangingPurpose = false; // Reset state
-    }
-  }
-
-  private handleChangePurpose() {
-    this.pauseAudio();
-    this.isChangingPurpose = true;
-    this.showOnboarding = true;
+    this.stopAudio();
   }
 
   override render() {
     const bg = styleMap({
       backgroundImage: this.makeBackground(),
     });
-    return html`<onboarding-modal
+    return html`<div id="background" style=${bg}></div>
+      ${this.isGenerating
+        ? html`<loading-spinner></loading-spinner>`
+        : html`
+            <div class="prompts-area">
+              <div
+                id="prompts-container"
+                @prompt-removed=${this.handlePromptRemoved}
+                @wheel=${this.handlePromptsContainerWheel}>
+                ${this.renderPrompts()}
+              </div>
+              <div class="add-prompt-button-container">
+                <add-prompt-button
+                  @click=${this.handleAddPrompt}></add-prompt-button>
+              </div>
+            </div>
+          `}
+      ${this.isGenerating
+        ? ''
+        : html`
+            <div id="settings-container">
+              <settings-controller
+                @settings-changed=${this.updateSettings}></settings-controller>
+            </div>
+          `}
+      ${this.isGenerating
+        ? ''
+        : html`
+            <div class="playback-container">
+              <play-pause-button
+                @click=${this.handlePlayPause}
+                .playbackState=${this.playbackState}></play-pause-button>
+              <reset-button @click=${this.handleReset}></reset-button>
+              <change-purpose-button
+                @click=${() => {
+                  this.pauseAudio();
+                  this.isChangingPurpose = true;
+                  this.showOnboarding = true;
+                }}></change-purpose-button>
+            </div>
+          `}
+      <toast-message></toast-message>
+      <onboarding-modal
         .show=${this.showOnboarding}
-        .isLoading=${this.onboardingIsLoading}
         .isUpdate=${this.isChangingPurpose}
-        @close=${this.handleOnboardingClose}
-        @generate=${this.handleGenerateFromPurpose}></onboarding-modal>
-      <div id="background" style=${bg}></div>
-      <div class="prompts-area">
-        <div
-          id="prompts-container"
-          @prompt-removed=${this.handlePromptRemoved}
-          @wheel=${this.handlePromptsContainerWheel}>
-          ${this.renderPrompts()}
-        </div>
-        <div class="add-prompt-button-container">
-          <add-prompt-button
-            @click=${this.handleAddPrompt}
-            ?hidden=${this.prompts.size === 0}></add-prompt-button>
-        </div>
-      </div>
-      <div id="settings-container">
-        <settings-controller
-          @settings-changed=${this.updateSettings}></settings-controller>
-      </div>
-      <div class="playback-container">
-        <play-pause-button
-          @click=${this.handlePlayPause}
-          .playbackState=${this.playbackState}></play-pause-button>
-        <change-purpose-button
-          @click=${this.handleChangePurpose}></change-purpose-button>
-        <reset-button @click=${this.handleReset}></reset-button>
-      </div>
-      <toast-message></toast-message>`;
+        @generate=${this.handleGenerateFromPurpose}
+        @close=${() => (this.showOnboarding = false)}></onboarding-modal>`;
   }
 
   private renderPrompts() {
@@ -1987,9 +1955,12 @@ class PromptDj extends LitElement {
   }
 }
 
-function gen(parent: HTMLElement) {
-  const pdj = new PromptDj();
+export function gen(parent: HTMLElement): PromptDj {
+  const initialPrompts = getStoredPrompts();
+
+  const pdj = new PromptDj(initialPrompts);
   parent.appendChild(pdj);
+  return pdj;
 }
 
 function getStoredPrompts(): Map<string, Prompt> {
@@ -2042,4 +2013,24 @@ function setStoredPrompts(prompts: Map<string, Prompt>) {
   localStorage.setItem('prompts', storedPrompts);
 }
 
-export {PromptDj};
+function main(container: HTMLElement) {
+  gen(container);
+}
+
+// main(document.body);
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'prompt-dj': PromptDj;
+    'prompt-controller': PromptController;
+    'settings-controller': SettingsController;
+    'add-prompt-button': AddPromptButton;
+    'play-pause-button': PlayPauseButton;
+    'change-purpose-button': ChangePurposeButton;
+    'reset-button': ResetButton;
+    'weight-slider': WeightSlider;
+    'toast-message': ToastMessage;
+    'onboarding-modal': OnboardingModal;
+    'loading-spinner': LoadingSpinner;
+  }
+}
