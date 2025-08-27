@@ -15,6 +15,7 @@
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "google-auth-library": "^9.11.0",
+    "lit": "^3.3.1",
     "node-fetch": "^3.3.2",
     "qrcode.react": "^4.2.0",
     "react": "^19.1.1",

@@ -1,0 +1,14 @@
+html, body {
+  height: 100%;
+  margin: 0;
+}
+body {
+  overflow: hidden;
+}
+body.dragging {
+  cursor: grabbing;
+}
+body.dragging * {
+  user-select: none;
+  pointer-events: none;
+}

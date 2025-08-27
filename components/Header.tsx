@@ -23,6 +23,7 @@ const Header: React.FC = () => {
             <NavLink to="/" className={navLinkClass}>Página Principal</NavLink>
             <NavLink to="/text-to-music" className={navLinkClass}>Texto para Música</NavLink>
             <NavLink to="/image-to-music" className={navLinkClass}>Imagem para Música</NavLink>
+            <NavLink to="/prompt-dj" className={navLinkClass}>Prompt DJ</NavLink>
           </nav>
 
           <div className="flex items-center space-x-2">

@@ -24,6 +24,7 @@ A web application that uses AI to generate music from text prompts and images.
 2.  **Create a `.env` file** in the root of the project and add your Google Cloud Project ID:
     ```
     PROJECT_ID=your-google-cloud-project-id
+    VITE_GEMINI_API_KEY=your_gemini_api_key
     ```
 3.  **Start the development servers:**
     ```bash
