@@ -55,6 +55,10 @@ gcloud projects add-iam-policy-binding $MY_PROJECT_ID \
        --member="serviceAccount:$MY_PROJECT_NO-compute@developer.gserviceaccount.com" \
        --role="roles/aiplatform.user" \
        --condition=None
+
+gcloud projects add-iam-policy-binding $MY_PROJECT_ID \
+  --member="serviceAccount:$MY_PROJECT_NO-compute@developer.gserviceaccount.com" \
+  --role='roles/storage.objectAdmin'
 ```
 
 Adjust substitutions on `cloudbuild.yaml` file:

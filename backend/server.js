@@ -3,6 +3,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { GoogleGenAI, Type } from "@google/genai";
+import { Storage } from '@google-cloud/storage';
 import { generateAudio } from './lyriaClient.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -30,6 +31,14 @@ if (!PROJECT_ID) {
   throw new Error("PROJECT_ID environment variable not set.");
 }
 const LOCATION = 'global';
+const BUCKET_NAME = 'lyria-demos-bucket';
+
+// Initialize Google Cloud Storage
+const storage = new Storage({
+    projectId: PROJECT_ID,
+});
+const bucket = storage.bucket(BUCKET_NAME);
+
 
 // Initialize Gemini with Vertex AI
 const ai = new GoogleGenAI({
@@ -40,15 +49,17 @@ const ai = new GoogleGenAI({
 
 // --- API Endpoints ---
 
-app.get('/api/music-samples', (req, res) => {
-  fs.readdir(musicDir, (err, files) => {
-    if (err) {
-      console.error('Error reading music directory:', err);
-      return res.status(500).json({ error: 'Failed to read music samples' });
+app.get('/api/music-samples', async (req, res) => {
+    try {
+        const [files] = await bucket.getFiles();
+        const musicFiles = files
+            .filter(file => file.name.endsWith('.wav') || file.name.endsWith('.mp3'))
+            .map(file => `https://storage.googleapis.com/${BUCKET_NAME}/${file.name}`);
+        res.json(musicFiles);
+    } catch (err) {
+        console.error('Error reading music directory from bucket:', err);
+        return res.status(500).json({ error: 'Failed to read music samples' });
     }
-    const musicFiles = files.filter(file => file.endsWith('.wav') || file.endsWith('.mp3'));
-    res.json(musicFiles);
-  });
 });
 
 app.post('/api/generate-prompt-from-image', async (req, res) => {
@@ -100,11 +111,19 @@ app.post('/api/generate-audio-from-prompt', async (req, res) => {
     try {
         const data = await generateAudio(prompt);
         if (data.predictions && data.predictions.length > 0 && data.predictions[0].bytesBase64Encoded) {
-            const audioData = data.predictions[0].bytesBase64Encoded;
+            const audioData = Buffer.from(data.predictions[0].bytesBase64Encoded, 'base64');
             const filename = `${Date.now()}.wav`;
-            const filePath = path.join(musicDir, filename);
-            fs.writeFileSync(filePath, Buffer.from(audioData, 'base64'));
-            const audioUrl = `/musics/${filename}`;
+            const file = bucket.file(filename);
+
+            await file.save(audioData, {
+                metadata: {
+                    contentType: 'audio/wav',
+                },
+            });
+            
+            await file.makePublic();
+
+            const audioUrl = `https://storage.googleapis.com/${BUCKET_NAME}/${filename}`;
             res.json({ audioUrl });
         } else {
             throw new Error("Invalid response structure from Lyria API.");
