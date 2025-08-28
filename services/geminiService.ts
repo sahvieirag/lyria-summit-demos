@@ -66,3 +66,34 @@ export const generateMusicDetailsFromText = async (prompt: string): Promise<Soun
     throw new Error(error.message || "An unexpected error occurred while generating music details.");
   }
 };
+
+export const generateImageFromPrompt = async (prompt: string): Promise<string> => {
+  const body = { prompt };
+
+  try {
+    const response = await fetch('/api/generate-image-from-prompt', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.json().catch(() => ({ error: 'Failed to parse error response' }));
+      console.error("Backend Proxy Error:", errorBody);
+      throw new Error(`Failed to generate image. Status: ${response.status}. ${errorBody.error || 'Unknown server error'}`);
+    }
+
+    const data = await response.json();
+    
+    if (data.imageBase64) {
+      return data.imageBase64;
+    } else {
+      throw new Error("Invalid response structure from backend. The response did not contain the expected image data.");
+    }
+  } catch (error: any) {
+    console.error("Error during image generation via backend:", error);
+    throw new Error(error.message || "An unexpected error occurred while generating image.");
+  }
+};

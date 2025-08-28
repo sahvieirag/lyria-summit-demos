@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { Soundtrack } from '../types';
-import { generatePromptFromImage } from '../services/geminiService';
+import { generatePromptFromImage, generateImageFromPrompt } from '../services/geminiService';
 import { generateAudioFromPrompt } from '../services/lyriaService';
 import SoundtrackResult from '../components/SoundtrackResult';
 import CameraCapture from '../components/CameraCapture';
@@ -46,6 +46,7 @@ const ImageToMusicPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const audioId = searchParams.get('id');
 
+  const [prompt, setPrompt] = useState('');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
@@ -115,11 +116,45 @@ const ImageToMusicPage: React.FC = () => {
   return (
     <div className="max-w-3xl mx-auto">
       <h1 className="text-3xl font-bold text-gray-800">Imagem para Música</h1>
-      <p className="mt-2 text-gray-600">Use sua câmera para capturar um momento ou escolha uma imagem para nós criarmos a trilha sonora perfeita para ele.</p>
+      <p className="mt-2 text-gray-600">Use sua câmera para capturar um momento, gere uma imagem com AI ou escolha uma imagem para nós criarmos a trilha sonora perfeita para ele.</p>
 
       <div className="mt-8">
         {!capturedImage ? (
           <>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">Gerar imagem com o Imagen (VertexAI):</h3>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  placeholder="Digite um prompt para gerar uma imagem. Ex: Uma Cidade Futurista ao anoitecer"
+                  className="flex-grow p-2 border rounded-lg"
+                />
+                <button
+                  onClick={async () => {
+                    if (!prompt) return;
+                    setIsLoading(true);
+                    setLoadingMessage('Gerando imagem com Imagen (VertexAI)...');
+                    try {
+                      const imageBase64 = await generateImageFromPrompt(prompt);
+                      setCapturedImage(imageBase64);
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+                    } finally {
+                      setIsLoading(false);
+                      setLoadingMessage('');
+                    }
+                  }}
+                  disabled={isLoading}
+                  className="py-2 px-4 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 disabled:bg-gray-400"
+                >
+                  Gerar Imagem
+                </button>
+              </div>
+            </div>
+            <div className="my-8 text-center text-gray-500"></div>
+            <h3 className="text-lg font-semibold text-gray-700 mb-4">Capture uma imagem com a câmera:</h3>
             <CameraCapture onCapture={handleCapture} />
             <div className="mt-8">
               <h3 className="text-lg font-semibold text-gray-700 mb-4">Ou escolha um preset:</h3>

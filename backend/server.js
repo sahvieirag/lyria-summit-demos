@@ -183,6 +183,53 @@ Please return a valid JSON object with the following structure:\n{\n  "title": "
     }
 });
 
+app.post('/api/generate-image-from-prompt', async (req, res) => {
+    const { prompt } = req.body;
+    if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
+
+    try {
+        const model = 'imagen-4.0-generate-001';
+        const location = 'us-central1';
+        const apiUrl = `https://${location}-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/${location}/publishers/google/models/${model}:predict`;
+
+        const auth = new (await import('google-auth-library')).GoogleAuth({
+            scopes: 'https://www.googleapis.com/auth/cloud-platform'
+        });
+        const client = await auth.getClient();
+        const accessToken = (await client.getAccessToken()).token;
+
+        const apiResponse = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                instances: [{ prompt }],
+                parameters: {
+                    "sampleCount": 1
+                },
+            }),
+        });
+
+        if (apiResponse.ok) {
+            const data = await apiResponse.json();
+            if (data.predictions && data.predictions.length > 0 && data.predictions[0].bytesBase64Encoded) {
+                res.json({ imageBase64: data.predictions[0].bytesBase64Encoded });
+            } else {
+                throw new Error("Invalid response structure from Imagen API.");
+            }
+        } else {
+            const errorText = await apiResponse.text();
+            console.error("Imagen API Error:", errorText);
+            throw new Error('Failed to generate image from Imagen API.');
+        }
+    } catch(error) {
+        console.error('Error with Imagen API:', error);
+        res.status(500).json({ error: 'Failed to generate image' });
+    }
+});
+
 
 app.get('/api/get-api-key', (req, res) => {
   const apiKey = process.env.VITE_GEMINI_API_KEY;
