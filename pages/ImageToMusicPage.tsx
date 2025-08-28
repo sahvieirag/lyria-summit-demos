@@ -5,6 +5,8 @@ import { generatePromptFromImage, generateImageFromPrompt } from '../services/ge
 import { generateAudioFromPrompt } from '../services/lyriaService';
 import SoundtrackResult from '../components/SoundtrackResult';
 import CameraCapture from '../components/CameraCapture';
+import LoadingState from '../components/LoadingState';
+import { LoadingIcon } from '../components/Icons';
 import actionImage from '../images/action.png';
 import devImage from '../images/dev.png';
 import romanceImage from '../images/romance.png';
@@ -147,8 +149,9 @@ const ImageToMusicPage: React.FC = () => {
                     }
                   }}
                   disabled={isLoading}
-                  className="py-2 px-4 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 disabled:bg-gray-400"
+                  className="py-2 px-4 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 disabled:bg-gray-400 flex items-center"
                 >
+                  {isLoading && <LoadingIcon className="w-5 h-5 mr-2 animate-spin" />}
                   Gerar Imagem
                 </button>
               </div>
@@ -180,9 +183,16 @@ const ImageToMusicPage: React.FC = () => {
               <button
                 onClick={handleGenerate}
                 disabled={isLoading}
-                className="flex-1 py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 transition"
+                className="flex-1 py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 transition flex items-center justify-center"
               >
-                {isLoading ? loadingMessage : 'Gerar Trilha Sonora'}
+                {isLoading ? (
+                  <>
+                    <LoadingIcon className="w-5 h-5 mr-2 animate-spin" />
+                    {loadingMessage}
+                  </>
+                ) : (
+                  'Gerar Trilha Sonora'
+                )}
               </button>
               <button
                 onClick={handleReset}
@@ -196,7 +206,6 @@ const ImageToMusicPage: React.FC = () => {
         )}
       </div>
 
-      {isLoading && !result && <div className="mt-8 text-center text-gray-600">{loadingMessage}</div>}
       {error && <div className="mt-8 p-4 bg-red-100 text-red-700 border border-red-200 rounded-lg">{error}</div>}
       {result && <SoundtrackResult soundtrack={result} />}
     </div>

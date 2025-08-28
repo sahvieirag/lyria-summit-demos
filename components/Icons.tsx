@@ -44,3 +44,20 @@ export const IconShare = (props: React.SVGProps<SVGSVGElement>) => (
         <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.195.025.39.044.586.06.334.036.669.08.999.134.331.053.66.115.982.186m-2.567 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm0 0a2.25 2.25 0 100 2.186m0-2.186a2.25 2.25 0 000 2.186m0 0a2.25 2.25 0 004.5 0m-4.5 0a2.25 2.25 0 000 2.186m0 0c.195.025.39.044.586.06.334.036.669.08.999.134.331.053.66.115.982.186m-2.567 0a2.25 2.25 0 114.5 0 2.25 2.25 0 01-4.5 0zm0 0a2.25 2.25 0 100 2.186" />
     </svg>
 );
+
+export const LoadingIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+  <svg
+    {...props}
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+  </svg>
+);
