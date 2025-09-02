@@ -251,7 +251,7 @@ app.get('*', (req, res) => {
 
 // --- Temporary File Cleanup ---
 const cleanupTemporaryFiles = () => {
-    const maxAge = 60 * 60 * 1000; // 1 hour in milliseconds
+    const maxAge = 15 * 60 * 1000; // 15 minutes in milliseconds
     fs.readdir(musicDir, (err, files) => {
         if (err) {
             console.error("Error reading music directory for cleanup:", err);
