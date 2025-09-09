@@ -18,11 +18,15 @@ app.use(cors());
 // --- Static File Serving for Production ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const musicDir = path.join(__dirname, '..', 'musics');
+const musicDir = path.join(__dirname, '..', 'dist', 'musics');
 
 // Serve static files from the 'dist' directory located at the project root
 app.use(express.static(path.join(__dirname, '..', 'dist')));
-app.use('/musics', express.static(musicDir));
+
+// Ensure the music directory exists
+if (!fs.existsSync(musicDir)) {
+  fs.mkdirSync(musicDir, { recursive: true });
+}
 
 
 const PROJECT_ID = process.env.PROJECT_ID;
