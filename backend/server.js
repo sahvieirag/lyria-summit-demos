@@ -58,8 +58,14 @@ app.post('/api/generate-prompt-from-image', async (req, res) => {
     try {
         const imagePart = { inlineData: { mimeType: 'image/jpeg', data: imageBase64 } };
         const textPart = { 
-            text: `Analyze the image and generate metadata for a soundtrack that fits its mood and style. 
-Please return a valid JSON object with the following structure:\n{\n  "title": "A creative and fitting title for the soundtrack",\n  "description": "A detailed prompt for a music generation model, capturing the mood, style, instrumentation, and tempo.",\n  "genre": "The primary genre (e.g., 'Cinematic', 'Ambient', 'Lo-fi', 'Electronic')",\n  "mood": "The dominant mood (e.g., 'Mysterious', 'Uplifting', 'Melancholic', 'Energetic')"\n}` 
+            text: `Analyze the image and generate metadata for a soundtrack that fits its mood and style. Avoid any terms that could be blocked by recitation checks. 
+Please return a valid JSON object with the following structure:
+{
+  "title": "A creative and fitting title for the soundtrack",
+  "description": "A detailed prompt for a music generation model, capturing the mood, style, instrumentation, and tempo.",
+  "genre": "The primary genre (e.g., 'Cinematic', 'Ambient', 'Lo-fi', 'Electronic')",
+  "mood": "The dominant mood (e.g., 'Mysterious', 'Uplifting', 'Melancholic', 'Energetic')"
+}` 
         };
         const model = 'gemini-2.5-flash';
 
@@ -132,7 +138,8 @@ app.post('/api/save-api-key', (req, res) => {
         if (data.includes('VITE_GEMINI_API_KEY')) {
             newData = data.replace(/VITE_GEMINI_API_KEY=.*/g, `VITE_GEMINI_API_KEY=${apiKey}`);
         } else {
-            newData += `\nVITE_GEMINI_API_KEY=${apiKey}`;
+            newData += `
+VITE_GEMINI_API_KEY=${apiKey}`;
         }
 
         fs.writeFile(envPath, newData, 'utf8', (err) => {
@@ -151,8 +158,14 @@ app.post('/api/generate-music-from-text', async (req, res) => {
 
     try {
         const textPart = { 
-            text: `Analyze the following user prompt and generate metadata for a soundtrack that fits the description. 
-Please return a valid JSON object with the following structure:\n{\n  "title": "A creative and fitting title for the soundtrack based on the prompt",\n  "description": "The original user prompt: ${prompt}",\n  "genre": "The primary genre (e.g., 'Cinematic', 'Ambient', 'Lo-fi', 'Electronic')",\n  "mood": "The dominant mood (e.g., 'Mysterious', 'Uplifting', 'Melancholic', 'Energetic')"\n}` 
+            text: `Analyze the following user prompt and generate metadata for a soundtrack that fits the description. If the prompt language is not English, translate it to English.
+Please return a valid JSON object with the following structure:
+{
+  "title": "A creative and fitting title for the soundtrack based on the prompt",
+  "description": "The original user prompt: ${prompt}",
+  "genre": "The primary genre (e.g., 'Cinematic', 'Ambient', 'Lo-fi', 'Electronic')",
+  "mood": "The dominant mood (e.g., 'Mysterious', 'Uplifting', 'Melancholic', 'Energetic')"
+}` 
         };
         const model = 'gemini-2.5-flash';
 
@@ -180,6 +193,39 @@ Please return a valid JSON object with the following structure:\n{\n  "title": "
     } catch(error) {
         console.error('Error with Text to Music:', error);
         res.status(500).json({ error: 'Failed to generate from text' });
+    }
+});
+
+app.post('/api/enhance-prompt', async (req, res) => {
+    const { prompt } = req.body;
+    if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
+
+    try {
+        const textPart = { 
+            text: `Based on the following documentation, improve the following user prompt for a music generation model (Lyria). The improved prompt should be more creative, detailed, and follow the best practices outlined in the documentation. Avoid any terms that could be blocked by recitation checks. Return only the improved prompt. If the prompt language is not English, translate it to English.
+            Documentation: https://cloud.google.com/vertex-ai/generative-ai/docs/music/music-gen-prompt-guide
+            Original prompt: "${prompt}"`
+        };
+        const model = 'gemini-2.5-flash';
+
+        const req_ = {
+            contents: [{ role: "user", parts: [textPart] }],
+            model
+        };
+
+        const streamingResp = await ai.models.generateContentStream(req_);
+        
+        let aggregatedText = "";
+        for await (const chunk of streamingResp) {
+            if (chunk.text) {
+                aggregatedText += chunk.text;
+            }
+        }
+
+        res.json({ enhancedPrompt: aggregatedText });
+    } catch(error) {
+        console.error('Error with prompt enhancement:', error);
+        res.status(500).json({ error: 'Failed to enhance prompt' });
     }
 });
 
@@ -229,6 +275,7 @@ app.post('/api/generate-image-from-prompt', async (req, res) => {
         res.status(500).json({ error: 'Failed to generate image' });
     }
 });
+
 
 
 app.get('/api/get-api-key', (req, res) => {

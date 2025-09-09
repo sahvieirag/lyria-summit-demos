@@ -34,7 +34,7 @@ const Header: React.FC = () => {
   };
 
   const navLinkClass = ({ isActive }: { isActive: boolean }): string =>
-    `px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+    `px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-colors ${
       isActive
         ? 'bg-blue-100 text-blue-700'
         : 'text-gray-600 hover:bg-gray-100'
@@ -49,7 +49,7 @@ const Header: React.FC = () => {
               <LogoIcon />
             </div>
 
-            <nav className="hidden md:flex items-center space-x-2 bg-white border border-gray-200 p-1 rounded-full shadow-sm">
+            <nav className="flex flex-wrap items-center space-x-1 sm:space-x-2 bg-white border border-gray-200 p-1 rounded-full shadow-sm">
               <NavLink to="/" className={navLinkClass}>Página Principal</NavLink>
               <NavLink to="/text-to-music" className={navLinkClass}>Texto para Música</NavLink>
               <NavLink to="/image-to-music" className={navLinkClass}>Imagem para Música</NavLink>
