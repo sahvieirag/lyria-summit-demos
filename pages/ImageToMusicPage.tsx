@@ -116,24 +116,6 @@ const ImageToMusicPage: React.FC = () => {
     setResult(null);
     setError(null);
   };
-
-  const handleSurpriseMeClick = async () => {
-    const randomIndex = Math.floor(Math.random() * imageGenerationPrompts.length);
-    const randomPrompt = imageGenerationPrompts[randomIndex];
-    setPrompt(randomPrompt);
-
-    setIsLoading(true);
-    setLoadingMessage('Gerando imagem com Imagen (VertexAI)...');
-    try {
-      const imageBase64 = await generateImageFromPrompt(randomPrompt);
-      setCapturedImage(imageBase64);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-    } finally {
-      setIsLoading(false);
-      setLoadingMessage('');
-    }
-  };
   
   // Se um 'id' de áudio estiver na URL, mostre a visualização de compartilhamento
   if (audioId) {
@@ -178,7 +160,8 @@ const ImageToMusicPage: React.FC = () => {
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     placeholder="Digite um prompt para gerar uma imagem. Ex: Uma cidade futurista ao anoitecer"
-                    className="flex-grow p-2 border rounded-lg"
+                    className="w-full h-32 p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                    disabled={isLoading}
                   />
                   <button
                     onClick={async () => {
@@ -200,13 +183,6 @@ const ImageToMusicPage: React.FC = () => {
                   >
                     {isLoading && <LoadingIcon className="w-5 h-5 mr-2 animate-spin" />}
                     Gerar Imagem
-                  </button>
-                  <button
-                    onClick={handleSurpriseMeClick}
-                    disabled={isLoading}
-                    className="py-2 px-4 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 disabled:bg-gray-400 flex items-center"
-                  >
-                    Surpreenda-me
                   </button>
                 </div>
                 <div className="mt-4">

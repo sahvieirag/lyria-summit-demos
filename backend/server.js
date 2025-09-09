@@ -203,7 +203,7 @@ app.post('/api/enhance-prompt', async (req, res) => {
     try {
         const textPart = { 
             text: `Based on the following documentation, improve the following user prompt for a music generation model (Lyria). The improved prompt should be more creative, detailed, and follow the best practices outlined in the documentation. Avoid any terms that could be blocked by recitation checks. Return only the improved prompt. If the prompt language is not English, translate it to English.
-            Documentation: https://cloud.google.com/vertex-ai/generative-ai/docs/music/music-gen-prompt-guide?hl=pt-br
+            Documentation: https://cloud.google.com/vertex-ai/generative-ai/docs/music/music-gen-prompt-guide
             Original prompt: "${prompt}"`
         };
         const model = 'gemini-2.5-flash';
