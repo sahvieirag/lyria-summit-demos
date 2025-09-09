@@ -857,15 +857,15 @@ class SettingsController extends LitElement {
     input[type='number']:focus,
     input[type='text']:focus {
       outline: none;
-      border-color: #3aa60cff;
-      box-shadow: 0 0 0 2px rgba(16, 139, 9, 0.3);
+      border-color:#005ce7;
+      box-shadow: 0 0 0 2px rgba(0, 132, 184, 0.3);
     }
     select {
       width: 100%;
     }
     select:focus {
       outline: none;
-      border-color: #3aa60cff;
+      border-color:rgb(12, 94, 166);
     }
     select option {
       background-color: #2a2a2a;
@@ -878,7 +878,7 @@ class SettingsController extends LitElement {
     }
     input[type='checkbox'] {
       cursor: pointer;
-      accent-color: #3aa60cff;
+      accent-color:rgb(12, 94, 166);
     }
     .core-settings-row {
       display: flex;
@@ -1169,7 +1169,7 @@ class LoadingSpinner extends LitElement {
       width: 8vmin;
       height: 8vmin;
       border: 1vmin solid #fff;
-      border-top-color: #3aa60cff;
+      border-top-color:rgb(12, 94, 166);
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
@@ -1266,7 +1266,7 @@ class OnboardingModal extends LitElement {
     }
     textarea:focus {
       outline: none;
-      border-color: #3aa60cff;
+      border-color:rgb(12, 94, 166);
       box-shadow: 0 0 0 2px rgba(27, 100, 13, 0.3);
     }
     .actions {
@@ -1277,7 +1277,7 @@ class OnboardingModal extends LitElement {
       margin-top: 1vmin;
     }
     button[type='submit'] {
-      background-color: #3aa60cff;
+      background-color:rgb(12, 94, 166);
       color: white;
       border: none;
       padding: 1.5vmin 3vmin;
@@ -1291,7 +1291,7 @@ class OnboardingModal extends LitElement {
       width: 60%;
     }
     button[type='submit']:hover:not(:disabled) {
-      background-color: #2e720eff;
+      background-color:rgb(14, 74, 114);
       transform: translateY(-2px);
     }
     button[type='submit']:disabled {

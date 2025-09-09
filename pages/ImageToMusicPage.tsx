@@ -17,6 +17,13 @@ const presetImages = [
   { name: 'Romance', src: romanceImage },
 ];
 
+const imageGenerationPrompts = [
+  "Uma foto cinematográfica de um soldado futurista em uma cidade iluminada por neon, para o trailer de um videogame.",
+  "Uma foto de produto elegante e moderna de um novo smartwatch em um fundo minimalista.",
+  "Uma imagem vibrante e emocionante para um novo jogo para celular, com um personagem de fantasia.",
+  "Uma imagem profissional e limpa para o lançamento de um produto corporativo, mostrando um novo laptop.",
+];
+
 // Componente para a visualização de compartilhamento
 const ShareView = ({ audioId }: { audioId: string }) => {
   const shareUrl = window.location.href;
@@ -54,6 +61,7 @@ const ImageToMusicPage: React.FC = () => {
   const [loadingMessage, setLoadingMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Soundtrack | null>(null);
+  const [activeTab, setActiveTab] = useState('ai');
 
   const handleCapture = useCallback((imageBase64: string) => {
     setCapturedImage(imageBase64);
@@ -108,6 +116,24 @@ const ImageToMusicPage: React.FC = () => {
     setResult(null);
     setError(null);
   };
+
+  const handleSurpriseMeClick = async () => {
+    const randomIndex = Math.floor(Math.random() * imageGenerationPrompts.length);
+    const randomPrompt = imageGenerationPrompts[randomIndex];
+    setPrompt(randomPrompt);
+
+    setIsLoading(true);
+    setLoadingMessage('Gerando imagem com Imagen (VertexAI)...');
+    try {
+      const imageBase64 = await generateImageFromPrompt(randomPrompt);
+      setCapturedImage(imageBase64);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+    } finally {
+      setIsLoading(false);
+      setLoadingMessage('');
+    }
+  };
   
   // Se um 'id' de áudio estiver na URL, mostre a visualização de compartilhamento
   if (audioId) {
@@ -116,98 +142,154 @@ const ImageToMusicPage: React.FC = () => {
 
   // Caso contrário, mostre a lógica original da página para gerar música
   return (
-    <div className="max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-800">Imagem para Música</h1>
-      <p className="mt-2 text-gray-600">Use sua câmera para capturar um momento, gere uma imagem com AI ou escolha uma imagem para nós criarmos a trilha sonora perfeita para ele.</p>
+    <div className="mx-auto">
+      <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-800">Imagem para Música</h1>
+      <p className="mt-2 text-lg sm:text-xl text-gray-600">Use sua câmera para capturar um momento, gere uma imagem com AI ou escolha uma imagem para nós criarmos a trilha sonora perfeita para ele.</p>
 
       <div className="mt-8">
         {!capturedImage ? (
           <>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">Gerar imagem com o Imagen (VertexAI):</h3>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="Digite um prompt para gerar uma imagem. Ex: Uma Cidade Futurista ao anoitecer"
-                  className="flex-grow p-2 border rounded-lg"
-                />
-                <button
-                  onClick={async () => {
-                    if (!prompt) return;
-                    setIsLoading(true);
-                    setLoadingMessage('Gerando imagem com Imagen (VertexAI)...');
-                    try {
-                      const imageBase64 = await generateImageFromPrompt(prompt);
-                      setCapturedImage(imageBase64);
-                    } catch (err) {
-                      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-                    } finally {
-                      setIsLoading(false);
-                      setLoadingMessage('');
-                    }
-                  }}
-                  disabled={isLoading}
-                  className="py-2 px-4 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 disabled:bg-gray-400 flex items-center"
-                >
-                  {isLoading && <LoadingIcon className="w-5 h-5 mr-2 animate-spin" />}
-                  Gerar Imagem
-                </button>
-              </div>
+            <div className="flex border-b mb-4">
+              <button
+                onClick={() => setActiveTab('ai')}
+                className={`py-2 px-4 text-lg font-semibold ${activeTab === 'ai' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500'}`}
+              >
+                Gerar com AI
+              </button>
+              <button
+                onClick={() => setActiveTab('camera')}
+                className={`py-2 px-4 text-lg font-semibold ${activeTab === 'camera' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500'}`}
+              >
+                Câmera
+              </button>
+              <button
+                onClick={() => setActiveTab('presets')}
+                className={`py-2 px-4 text-lg font-semibold ${activeTab === 'presets' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500'}`}
+              >
+                Presets
+              </button>
             </div>
-            <div className="my-8 text-center text-gray-500"></div>
-            <h3 className="text-lg font-semibold text-gray-700 mb-4">Capture uma imagem com a câmera:</h3>
-            <CameraCapture onCapture={handleCapture} />
-            <div className="mt-8">
-              <h3 className="text-lg font-semibold text-gray-700 mb-4">Ou escolha um preset:</h3>
-              <div className="grid grid-cols-3 gap-4">
-                {presetImages.map((image) => (
-                  <div key={image.name} className="cursor-pointer group" onClick={() => handlePresetSelect(image.src)}>
-                    <img src={image.src} alt={image.name} className="rounded-lg shadow-md group-hover:opacity-75 transition" />
-                    <p className="text-center mt-2 text-gray-600">{image.name}</p>
+
+            {activeTab === 'ai' && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">Gerar imagem com o Imagen 4:</h3>
+                <div className="flex gap-2">
+                  <textarea
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    placeholder="Digite um prompt para gerar uma imagem. Ex: Uma cidade futurista ao anoitecer"
+                    className="flex-grow p-2 border rounded-lg"
+                  />
+                  <button
+                    onClick={async () => {
+                      if (!prompt) return;
+                      setIsLoading(true);
+                      setLoadingMessage('Gerando imagem com Imagen...');
+                      try {
+                        const imageBase64 = await generateImageFromPrompt(prompt);
+                        setCapturedImage(imageBase64);
+                      } catch (err) {
+                        setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+                      } finally {
+                        setIsLoading(false);
+                        setLoadingMessage('');
+                      }
+                    }}
+                    disabled={isLoading}
+                    className="py-2 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 flex items-center"
+                  >
+                    {isLoading && <LoadingIcon className="w-5 h-5 mr-2 animate-spin" />}
+                    Gerar Imagem
+                  </button>
+                  <button
+                    onClick={handleSurpriseMeClick}
+                    disabled={isLoading}
+                    className="py-2 px-4 bg-purple-600 text-white font-semibold rounded-lg shadow-md hover:bg-purple-700 disabled:bg-gray-400 flex items-center"
+                  >
+                    Surpreenda-me
+                  </button>
+                </div>
+                <div className="mt-4">
+                  <h4 className="text-lg font-semibold text-gray-700">Ou tente um exemplo:</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {imageGenerationPrompts.map((p) => (
+                      <button
+                        key={p}
+                        onClick={() => setPrompt(p)}
+                        disabled={isLoading}
+                        className="text-sm sm:text-base py-2 px-4 bg-gray-200 hover:bg-gray-300 rounded-lg text-gray-700 transition"
+                      >
+                        {p}
+                      </button>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
-            </div>
+            )}
+
+            {activeTab === 'camera' && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-700 mb-4">Capture uma imagem com a câmera:</h3>
+                <CameraCapture onCapture={handleCapture} />
+              </div>
+            )}
+
+            {activeTab === 'presets' && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-700 mb-4">Ou escolha um preset:</h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                  {presetImages.map((image) => (
+                    <div key={image.name} className="cursor-pointer group">
+                      <img src={image.src} alt={image.name} className="rounded-lg shadow-md group-hover:opacity-75 transition max-w-xs" onClick={() => handlePresetSelect(image.src)} />
+                      <p className="text-center mt-2 text-gray-600">{image.name}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </>
         ) : (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-700">Foto Selecionada:</h3>
-            <img
-              src={`data:image/jpeg;base64,${capturedImage}`}
-              alt="Captured"
-              className="rounded-lg shadow-lg w-full"
-            />
-            <div className="flex space-x-4">
-              <button
-                onClick={handleGenerate}
-                disabled={isLoading}
-                className="flex-1 py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 transition flex items-center justify-center"
-              >
-                {isLoading ? (
-                  <>
-                    <LoadingIcon className="w-5 h-5 mr-2 animate-spin" />
-                    {loadingMessage}
-                  </>
-                ) : (
-                  'Gerar Trilha Sonora'
-                )}
-              </button>
-              <button
-                onClick={handleReset}
-                disabled={isLoading}
-                className="flex-1 py-3 px-4 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75 transition"
-              >
-                Escolher Outra Foto
-              </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+            <div>
+              <img
+                src={`data:image/jpeg;base64,${capturedImage}`}
+                alt="Captured"
+                className="rounded-lg shadow-lg"
+              />
+            </div>
+            <div className="space-y-4">
+              <div className="flex space-x-4">
+                <button
+                  onClick={handleGenerate}
+                  disabled={isLoading}
+                  className="flex-1 py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 transition flex items-center justify-center"
+                >
+                  {isLoading && !result ? (
+                    <>
+                      <LoadingIcon className="w-5 h-5 mr-2 animate-spin" />
+                      {loadingMessage}
+                    </>
+                  ) : (
+                    'Gerar Trilha Sonora'
+                  )}
+                </button>
+                <button
+                  onClick={handleReset}
+                  disabled={isLoading}
+                  className="flex-1 py-3 px-4 bg-gray-200 text-gray-800 font-semibold rounded-lg hover:bg-gray-300 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75 transition"
+                >
+                  Escolher Outra Foto
+                </button>
+              </div>
+              <div className="mt-8 md:mt-0">
+                {isLoading && !result && <LoadingState message={loadingMessage} />}
+                {error && <div className="mt-8 p-4 bg-red-100 text-red-700 border border-red-200 rounded-lg">{error}</div>}
+                {result && <SoundtrackResult soundtrack={result} />}
+              </div>
             </div>
           </div>
         )}
       </div>
-
-      {error && <div className="mt-8 p-4 bg-red-100 text-red-700 border border-red-200 rounded-lg">{error}</div>}
-      {result && <SoundtrackResult soundtrack={result} />}
     </div>
   );
 };

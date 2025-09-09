@@ -15,8 +15,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="min-h-screen bg-white flex flex-col">
       <Header />
       <main
-        className={`flex-grow ${
-          isPromptDJ ? 'h-full' : 'p-4 sm:p-6 md:p-8 max-w-7xl mx-auto'
+        className={`flex-grow w-full ${
+          isPromptDJ ? 'h-full' : 'p-6 sm:p-8 md:p-12 mx-auto'
         }`}
       >
         {children}
